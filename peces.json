@@ -1,0 +1,16 @@
+{
+  "Serranidae (Meros)": {
+    "Mero gigante": "Epinephelus itajara",
+    "Mero negro": "Epinephelus nigritus",
+    "Mero moteado": "Epinephelus marginatus"
+  },
+  "Lutjanidae (Pargos)": {
+    "Pargo rojo": "Lutjanus campechanus",
+    "Pargo amarillo": "Lutjanus argentiventris",
+    "Pargo criollo": "Lutjanus analis"
+  },
+  "Scaridae (Loros)": {
+    "Pez loro azul": "Scarus coeruleus",
+    "Pez loro arcoíris": "Scarus guacamaia"
+  }
+}

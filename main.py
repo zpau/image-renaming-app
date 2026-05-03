@@ -9,18 +9,21 @@ from pathlib import Path
 # --- ESTILS CSS ACTUALITZATS ---
 estils_css = """
 body {
-    background-color: #c6d6d5; /* <-- AFEGEIX AIXÒ PER CANVIAR EL COLOR DE FONS DE L'APP */
+    background-color: #c6d6d5; 
 }
 .header-container {
-    background-color: #2c3e50; /* Color del fons del Header */
+    /* Degradat de blau fosc a un blau més viu */
+    background: linear-gradient(90deg, #2c3e50 0%, #4ca1af 100%);
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 10px;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.2); /* Una ombra més marcada perquè ressalti */
 }
 .header-container h1 {
     text-align: center;
-    color: white !important; /* Color del text del Header */
+    color: white !important; 
     margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Ombra al text per a millor lectura */
 }
 .bk-btn {
     font-size: 16px !important;
@@ -60,7 +63,6 @@ class EstadoApp:
         self.current_image = None
         self.familia_seleccionada = None
         self.imagenes_pendientes = []
-        # Nous comptadors
         self.n_classificats = 0
         self.n_descartats = 0
 
@@ -130,46 +132,8 @@ setup_container = pn.Column(
     align="center",
 )
 
-# --- INDICADORS VISUALS (COMPTADORS) ---
-ind_pendents = pn.indicators.Number(
-    name="Imatges Pendents",
-    value=0,
-    format="{value}",
-    font_size="18pt",
-    title_size="12pt",
-    colors=[(100, "#2980b9")],
-)
-ind_classificats = pn.indicators.Number(
-    name="Ja Classificades",
-    value=0,
-    format="{value}",
-    font_size="18pt",
-    title_size="12pt",
-    colors=[(100, "#27ae60")],
-)
-ind_descartades = pn.indicators.Number(
-    name="Descartades",
-    value=0,
-    format="{value}",
-    font_size="18pt",
-    title_size="12pt",
-    colors=[(100, "#e74c3c")],
-)
-
-# Afegim pn.layout.HSpacer() al principi de la fila per empènyer els comptadors a la dreta
-indicadors_row = pn.Row(
-    pn.layout.HSpacer(),
-    ind_pendents,
-    ind_classificats,
-    ind_descartades,
-    sizing_mode="stretch_width",
-    visible=False,
-    margin=(20, 20, 0, 0),
-)
-
-
 # --- COMPONENTS UI: CLASSIFICACIÓ ---
-imagen_visor = pn.pane.JPG(width=800, height=600, sizing_mode="fixed", align="center")
+imagen_visor = pn.pane.JPG(sizing_mode="scale_both", max_height=600, align="center")
 mensaje = pn.pane.Alert(
     "Configura les carpetes per començar.",
     alert_type="secondary",
@@ -192,16 +156,16 @@ btn_limpiar_descartes = pn.widgets.Button(
     button_type="danger",
     button_style="outline",
     height=40,
-    width=800,  # Torna a tenir l'amplada de la imatge
+    width=800,
     align="center",
 )
 
-# 1. Tornem a posar el botó de restaurar a la columna de l'esquerra (sota els missatges)
+# 1a Columna (Imatge i controls principals)
 col_imatge_esquerra = pn.Column(
     imagen_visor, row_like_dislike, mensaje, btn_limpiar_descartes, width=850
 )
 
-# Fase 2: Famílies i Espècies
+# 2a i 3a Columna: Famílies i Espècies
 btn_volver = pn.widgets.Button(name="🔙 Tornar", button_type="light", height=40)
 contenedor_familias = pn.Column(
     "## 1. Família", btn_volver, pn.layout.Divider(), visible=False
@@ -214,7 +178,8 @@ boton_confirmar_otro = pn.widgets.Button(
 )
 contenedor_manual = pn.Column(seccion_otro, boton_confirmar_otro, visible=False)
 
-# --- INDICADORS VISUALS (COMPTADORS EN VERTICAL) ---
+
+# --- 4a COLUMNA: INDICADORS VISUALS ---
 ind_pendents = pn.indicators.Number(
     name="Pendents",
     value=0,
@@ -222,7 +187,7 @@ ind_pendents = pn.indicators.Number(
     font_size="22pt",
     title_size="13pt",
     colors=[(100, "#2980b9")],
-    align="end",
+    align="center",
 )
 ind_classificats = pn.indicators.Number(
     name="Classificades",
@@ -231,7 +196,7 @@ ind_classificats = pn.indicators.Number(
     font_size="22pt",
     title_size="13pt",
     colors=[(100, "#27ae60")],
-    align="end",
+    align="center",
 )
 ind_descartades = pn.indicators.Number(
     name="Descartades",
@@ -240,31 +205,51 @@ ind_descartades = pn.indicators.Number(
     font_size="22pt",
     title_size="13pt",
     colors=[(100, "#e74c3c")],
-    align="end",
+    align="center",
 )
 
-# Apilem els comptadors un sobre l'altre
 grup_comptadors_vertical = pn.Column(
-    pn.layout.VSpacer(),  # Això actua com una molla invisible que empeny els números cap a baix de tot
     ind_pendents,
     ind_classificats,
     ind_descartades,
-    align="end",
+    align="center",
 )
 
-# --- SUPER CONTENIDOR PRINCIPAL ---
+
+# --- SUPER CONTENIDOR PRINCIPAL RESPONSIVE ---
+
+# 1a Columna: La imagen (Mantenemos un ancho mínimo grande)
+col_imatge_esquerra = pn.Column(
+    imagen_visor,
+    row_like_dislike,
+    mensaje,
+    btn_limpiar_descartes,
+    sizing_mode="stretch_width",
+    min_width=700,  # Esto asegura que la imagen siempre tenga un espacio protagonista
+    margin=(0, 10),
+)
+
+# 2a, 3a y 4a Columna: Se adaptarán proporcionalmente
 app_container = pn.Row(
     col_imatge_esquerra,
-    pn.Column(contenedor_familias, width=400),  # Segona Columna
+    pn.Column(contenedor_familias, sizing_mode="stretch_width", min_width=200),
     pn.Column(
         contenedor_especies,
         contenedor_manual,
+        sizing_mode="stretch_width",
+        min_width=200,
+    ),
+    pn.Column(
+        pn.layout.VSpacer(),
         grup_comptadors_vertical,
-        width=400,
-        min_height=770,  # Li donem la mateixa alçada que la imatge+botons perquè el VSpacer els tiri abaix del tot
-    ),  # Tercera Columna
+        sizing_mode="stretch_width",
+        min_width=150,
+        align="center",
+    ),
     visible=False,
+    sizing_mode="stretch_width",  # Hace que la fila ocupe todo el ancho de la pantalla
 )
+
 
 # --- LÒGICA ---
 
@@ -321,7 +306,6 @@ def iniciar_app(event):
     state.output_folder = output_dir_widget.value
     os.makedirs(state.output_folder, exist_ok=True)
 
-    # Comptar classificades reals al disc
     n_class_reals = 0
     nombres_procesados = set()
     for p in Path(state.output_folder).rglob("*"):
@@ -331,7 +315,6 @@ def iniciar_app(event):
 
     state.n_classificats = n_class_reals
 
-    # Comptar descartades reals
     n_desc_reals = 0
     nombres_descartados = set()
     if os.path.exists(ARCHIVO_DESCARTES):
@@ -401,11 +384,12 @@ def accion_limpiar_descartes(event):
         mensaje.alert_type = "info"
 
 
+# --- CONNECCIONS DE BOTONS ---
 btn_empezar.on_click(iniciar_app)
 btn_like.on_click(lambda e: accion_like(e))
 btn_dislike.on_click(accion_dislike)
 btn_volver.on_click(lambda e: accion_volver(e))
-btn_limpiar_descartes.on_click(accion_limpiar_descartes)  # Activat el botó de restaurar
+btn_limpiar_descartes.on_click(accion_limpiar_descartes)
 boton_confirmar_otro.on_click(
     lambda e: ejecutar_duplicado_y_renombrado(seccion_otro.value)
 )
@@ -417,22 +401,16 @@ def accion_like(e):
 
 
 def accion_volver(e):
-    # Ocultem absolutament tots els panells de classificació
     contenedor_familias.visible = False
     contenedor_especies.visible = False
     contenedor_manual.visible = False
-
-    # Tornem a mostrar els botons de Like / Dislike
     row_like_dislike.visible = True
-
-    # Actualitzem el missatge
     mensaje.object = "🔙 Tornant a avaluar la imatge..."
     mensaje.alert_type = "secondary"
 
 
-# GENERAR BOTONS DE FAMÍLIES
+# --- GENERAR BOTONS DE FAMÍLIES ---
 for fam in PECES_DB.keys():
-    # AQUÍ MODIFIQUES EL COLOR DE LES FAMÍLIES
     btn_fam = pn.widgets.Button(name=fam, button_type="primary", height=50)
     btn_fam.on_click(seleccionar_familia)
     contenedor_familias.append(btn_fam)
@@ -444,6 +422,8 @@ btn_fam_otro.on_click(seleccionar_familia)
 contenedor_familias.append(pn.layout.Divider())
 contenedor_familias.append(btn_fam_otro)
 
-# Inserim els comptadors a sota de tot (després de lapp_container)
-layout = pn.Column(titulo, setup_container, app_container, align="center")
+# --- RENDERITZAT FINAL ---
+layout = pn.Column(
+    titulo, setup_container, app_container, align="center", sizing_mode="stretch_width"
+)
 layout.servable()

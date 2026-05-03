@@ -60,6 +60,9 @@ class EstadoApp:
         self.current_image = None
         self.familia_seleccionada = None
         self.imagenes_pendientes = []
+        # Nous comptadors
+        self.n_classificats = 0
+        self.n_descartats = 0
 
 
 state = EstadoApp()
@@ -84,7 +87,6 @@ def abrir_selector_carpeta(event, text_widget):
 
 
 # --- COMPONENTS UI: CONFIGURACIÓ INICIAL ---
-# Header amb background color definit al CSS
 titulo = pn.pane.HTML(
     '<div class="header-container"><h1>🐟 Classificador de Peixos</h1></div>',
     sizing_mode="stretch_width",
@@ -94,7 +96,7 @@ btn_buscar_origen = pn.widgets.Button(
     name="📁 Cercar", width=120, height=45, button_type="primary", align="end"
 )
 input_dir_widget = pn.widgets.TextInput(
-    name="1. Carpeta d'Origen", value=str(Path.cwd()), width=450
+    name="1. Carpeta d'Origen", value=str(Path.cwd()), width=500
 )
 btn_buscar_origen.on_click(lambda e: abrir_selector_carpeta(e, input_dir_widget))
 row_origen = pn.Row(btn_buscar_origen, input_dir_widget)
@@ -105,7 +107,7 @@ btn_buscar_destino = pn.widgets.Button(
 output_dir_widget = pn.widgets.TextInput(
     name="2. Carpeta de Destinació",
     value=str(Path.cwd() / "peixos_classificats"),
-    width=450,
+    width=500,
 )
 btn_buscar_destino.on_click(lambda e: abrir_selector_carpeta(e, output_dir_widget))
 row_destino = pn.Row(btn_buscar_destino, output_dir_widget)
@@ -119,7 +121,7 @@ btn_empezar = pn.widgets.Button(
 )
 
 setup_container = pn.Column(
-    "### Configuració de Carpetes",
+    "## Configuració de Carpetes",
     row_origen,
     row_destino,
     pn.layout.Divider(),
@@ -127,6 +129,44 @@ setup_container = pn.Column(
     width=700,
     align="center",
 )
+
+# --- INDICADORS VISUALS (COMPTADORS) ---
+ind_pendents = pn.indicators.Number(
+    name="Imatges Pendents",
+    value=0,
+    format="{value}",
+    font_size="18pt",
+    title_size="12pt",
+    colors=[(100, "#2980b9")],
+)
+ind_classificats = pn.indicators.Number(
+    name="Ja Classificades",
+    value=0,
+    format="{value}",
+    font_size="18pt",
+    title_size="12pt",
+    colors=[(100, "#27ae60")],
+)
+ind_descartades = pn.indicators.Number(
+    name="Descartades",
+    value=0,
+    format="{value}",
+    font_size="18pt",
+    title_size="12pt",
+    colors=[(100, "#e74c3c")],
+)
+
+# Afegim pn.layout.HSpacer() al principi de la fila per empènyer els comptadors a la dreta
+indicadors_row = pn.Row(
+    pn.layout.HSpacer(),
+    ind_pendents,
+    ind_classificats,
+    ind_descartades,
+    sizing_mode="stretch_width",
+    visible=False,
+    margin=(20, 20, 0, 0),
+)
+
 
 # --- COMPONENTS UI: CLASSIFICACIÓ ---
 imagen_visor = pn.pane.JPG(width=800, height=600, sizing_mode="fixed", align="center")
@@ -138,10 +178,10 @@ mensaje = pn.pane.Alert(
 )
 
 btn_like = pn.widgets.Button(
-    name="👍 M'AGRADA (Classificar)", button_type="success", height=80, width=380
+    name="👍 M'AGRADA (Classificar)", button_type="success", height=60, width=380
 )
 btn_dislike = pn.widgets.Button(
-    name="👎 PASSAR (Següent Imatge)", button_type="danger", height=80, width=380
+    name="👎 PASSAR (Següent Imatge)", button_type="danger", height=60, width=380
 )
 row_like_dislike = pn.Row(
     btn_like, btn_dislike, visible=False, width=800, align="center"
@@ -152,10 +192,11 @@ btn_limpiar_descartes = pn.widgets.Button(
     button_type="danger",
     button_style="outline",
     height=40,
-    width=800,
+    width=800,  # Torna a tenir l'amplada de la imatge
     align="center",
 )
 
+# 1. Tornem a posar el botó de restaurar a la columna de l'esquerra (sota els missatges)
 col_imatge_esquerra = pn.Column(
     imagen_visor, row_like_dislike, mensaje, btn_limpiar_descartes, width=850
 )
@@ -173,14 +214,67 @@ boton_confirmar_otro = pn.widgets.Button(
 )
 contenedor_manual = pn.Column(seccion_otro, boton_confirmar_otro, visible=False)
 
+# --- INDICADORS VISUALS (COMPTADORS EN VERTICAL) ---
+ind_pendents = pn.indicators.Number(
+    name="Pendents",
+    value=0,
+    format="{value}",
+    font_size="22pt",
+    title_size="13pt",
+    colors=[(100, "#2980b9")],
+    align="end",
+)
+ind_classificats = pn.indicators.Number(
+    name="Classificades",
+    value=0,
+    format="{value}",
+    font_size="22pt",
+    title_size="13pt",
+    colors=[(100, "#27ae60")],
+    align="end",
+)
+ind_descartades = pn.indicators.Number(
+    name="Descartades",
+    value=0,
+    format="{value}",
+    font_size="22pt",
+    title_size="13pt",
+    colors=[(100, "#e74c3c")],
+    align="end",
+)
+
+# Apilem els comptadors un sobre l'altre
+grup_comptadors_vertical = pn.Column(
+    pn.layout.VSpacer(),  # Això actua com una molla invisible que empeny els números cap a baix de tot
+    ind_pendents,
+    ind_classificats,
+    ind_descartades,
+    align="end",
+)
+
+# --- SUPER CONTENIDOR PRINCIPAL ---
 app_container = pn.Row(
     col_imatge_esquerra,
-    pn.Column(contenedor_familias, width=250),
-    pn.Column(contenedor_especies, contenedor_manual, width=250),
+    pn.Column(contenedor_familias, width=400),  # Segona Columna
+    pn.Column(
+        contenedor_especies,
+        contenedor_manual,
+        grup_comptadors_vertical,
+        width=400,
+        min_height=770,  # Li donem la mateixa alçada que la imatge+botons perquè el VSpacer els tiri abaix del tot
+    ),  # Tercera Columna
     visible=False,
 )
 
 # --- LÒGICA ---
+
+
+def actualizar_indicadores():
+    ind_pendents.value = len(state.imagenes_pendientes) + (
+        1 if state.current_image else 0
+    )
+    ind_classificats.value = state.n_classificats
+    ind_descartades.value = state.n_descartats
 
 
 def cargar_nueva_imagen():
@@ -192,6 +286,7 @@ def cargar_nueva_imagen():
         state.current_image = None
         imagen_visor.object = None
         row_like_dislike.visible = False
+        actualizar_indicadores()
         mensaje.object = "🎉 Has acabat!"
         mensaje.alert_type = "success"
         return
@@ -199,6 +294,7 @@ def cargar_nueva_imagen():
     state.imagenes_pendientes.remove(state.current_image)
     imagen_visor.object = state.current_image
     mensaje.object = f"Mostrant: **{os.path.basename(state.current_image)}**"
+    actualizar_indicadores()
 
 
 def seleccionar_familia(event):
@@ -215,26 +311,38 @@ def seleccionar_familia(event):
 
     especies = list(PECES_DB[familia].keys()) + ["Altre"]
     for especie in especies:
-        # AQUÍ MODIFIQUES EL COLOR DE LES ESPÈCIES
-        # Pots usar button_type o styles={'background': '#XXXXXX'}
         btn = pn.widgets.Button(name=especie, button_type="light", height=45)
         btn.on_click(seleccionar_especie)
         contenedor_especies.append(btn)
 
 
-# (Rest de funcions igual que abans...)
 def iniciar_app(event):
     state.input_folder = input_dir_widget.value
     state.output_folder = output_dir_widget.value
     os.makedirs(state.output_folder, exist_ok=True)
+
+    # Comptar classificades reals al disc
+    n_class_reals = 0
     nombres_procesados = set()
     for p in Path(state.output_folder).rglob("*"):
         if p.is_file() and "_[" in p.name:
+            n_class_reals += 1
             nombres_procesados.add(f"{p.name.split('_[')[0]}{p.suffix}")
+
+    state.n_classificats = n_class_reals
+
+    # Comptar descartades reals
+    n_desc_reals = 0
     nombres_descartados = set()
     if os.path.exists(ARCHIVO_DESCARTES):
         with open(ARCHIVO_DESCARTES, "r", encoding="utf-8") as f:
-            nombres_descartados = set(line.strip() for line in f if line.strip())
+            for line in f:
+                if line.strip():
+                    n_desc_reals += 1
+                    nombres_descartados.add(line.strip())
+
+    state.n_descartats = n_desc_reals
+
     state.imagenes_pendientes = [
         str(p)
         for p in Path(state.input_folder).rglob("*")
@@ -242,6 +350,7 @@ def iniciar_app(event):
         and p.name not in nombres_procesados
         and p.name not in nombres_descartados
     ]
+
     setup_container.visible = False
     app_container.visible = True
     cargar_nueva_imagen()
@@ -250,10 +359,13 @@ def iniciar_app(event):
 def accion_dislike(event):
     with open(ARCHIVO_DESCARTES, "a", encoding="utf-8") as f:
         f.write(f"{Path(state.current_image).name}\n")
+    state.n_descartats += 1
     cargar_nueva_imagen()
 
 
 def ejecutar_duplicado_y_renombrado(nombre_cientifico):
+    if not nombre_cientifico.strip():
+        return
     try:
         path_orig = Path(state.current_image)
         folder = Path(state.output_folder) / limpiar_nombre_carpeta(nombre_cientifico)
@@ -262,6 +374,7 @@ def ejecutar_duplicado_y_renombrado(nombre_cientifico):
             path_orig,
             folder / f"{path_orig.stem}_[{nombre_cientifico}]{path_orig.suffix}",
         )
+        state.n_classificats += 1
         cargar_nueva_imagen()
     except Exception as e:
         mensaje.object = f"Error: {e}"
@@ -277,10 +390,22 @@ def seleccionar_especie(event):
         )
 
 
+def accion_limpiar_descartes(event):
+    if os.path.exists(ARCHIVO_DESCARTES):
+        os.remove(ARCHIVO_DESCARTES)
+        mensaje.object = "♻️ Imatges restaurades. Re-escanejant la carpeta..."
+        mensaje.alert_type = "success"
+        iniciar_app(None)
+    else:
+        mensaje.object = "ℹ️ No hi ha imatges descartades per restaurar."
+        mensaje.alert_type = "info"
+
+
 btn_empezar.on_click(iniciar_app)
 btn_like.on_click(lambda e: accion_like(e))
 btn_dislike.on_click(accion_dislike)
 btn_volver.on_click(lambda e: accion_volver(e))
+btn_limpiar_descartes.on_click(accion_limpiar_descartes)  # Activat el botó de restaurar
 boton_confirmar_otro.on_click(
     lambda e: ejecutar_duplicado_y_renombrado(seccion_otro.value)
 )
@@ -319,5 +444,6 @@ btn_fam_otro.on_click(seleccionar_familia)
 contenedor_familias.append(pn.layout.Divider())
 contenedor_familias.append(btn_fam_otro)
 
+# Inserim els comptadors a sota de tot (després de lapp_container)
 layout = pn.Column(titulo, setup_container, app_container, align="center")
 layout.servable()

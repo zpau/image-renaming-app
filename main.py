@@ -90,7 +90,7 @@ def abrir_selector_carpeta(event, text_widget):
 
 # --- COMPONENTS UI: CONFIGURACIÓ INICIAL ---
 titulo = pn.pane.HTML(
-    '<div class="header-container"><h1>🐟 Classificador de Peixos</h1></div>',
+    '<div class="header-container"><h1>🐟 Classificador de Peixos de Torredembarra</h1></div>',
     sizing_mode="stretch_width",
 )
 

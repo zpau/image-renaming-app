@@ -1,5 +1,46 @@
 {
-    "Serranidae (Meros)": {
-        "Mero gegant": "Epinephelus itajara"
+    "Espàrids": {
+        "Sard": "Diplodus sargus",
+        "Sard Reial": "Diplodus cervinus",
+        "Morruda": "Diplodus puntazzo",
+        "Variada": "Diplodus vulgaris",
+        "Oblada": "Oblada melanura",
+        "Mabre": "Lithognathus mormyrus",
+        "Salpa": "Sarpa salpa",
+        "Dorada": "Sparus aurata",
+        "Esparrall": "Diplodus annularis"
+    },
+    "Serànids": {
+        "Serrà": "Serranus scriba",
+        "Llobarro": "Dicentrarchus labrax",
+        "Mero": "Epinephelus marginatus"
+    },
+    "Làbrids": {
+        "Fadrí": "Thalassoma pavo",
+        "Donzella": "Coris julis",
+        "Tord Tinca": "Symphodus tinca",
+        "Tord Roissali": "Symphodus roissali"
+    },
+    "Mullids": {
+        "Moll de Roca": "Mullus barbatus",
+        "Mull de Sorra": "Mullus surmuretus"
+    },
+    "Blènnids": {
+        "Pilicornis": "Parablennius pilicornis",
+        "Gatorugine": "Parablennius gattorugine"
+    },
+    "Gòbids": {
+        "Burret Buchichi": "Gobius bucchichi",
+        "Burret de Roca": "Gobius cobitis"
+    },
+    "Altres Espècies Comunes": {
+        "Palomida":"Trachinotus ovatus",
+        "Llisa":"Mugilidae",
+        "Castanyola":"Chromis chromis",
+        "Roncador":"Pomadasys incisus",
+        "Escorpora":"Scorpaena",
+        "Puput": "Bothus podas",
+        "Moll reial": "Apogon imberbis",
+        "Sirvia": "Seriola dumerili"
     }
 }

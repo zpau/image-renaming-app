@@ -15,7 +15,7 @@ EXTENSIONES_VALIDAS = (".jpg", ".jpeg", ".png", ".webp")
 
 
 def cargar_datos_peces():
-    datos_por_defecto = {"Serranidae (Meros)": {"Mero gigante": "Epinephelus itajara"}}
+    datos_por_defecto = {"": {"": ""}}
     if not os.path.exists(ARCHIVO_DATOS) or os.path.getsize(ARCHIVO_DATOS) == 0:
         with open(ARCHIVO_DATOS, "w", encoding="utf-8") as f:
             json.dump(datos_por_defecto, f, indent=4, ensure_ascii=False)
@@ -24,7 +24,7 @@ def cargar_datos_peces():
         with open(ARCHIVO_DATOS, "r", encoding="utf-8") as f:
             return json.load(f)
     except json.JSONDecodeError:
-        print(f"⚠️ ERROR: El archivo {ARCHIVO_DATOS} está mal formateado.")
+        print(f"⚠️ ERROR: L'arxiu {ARCHIVO_DATOS} no està ben formatejat.")
         return datos_por_defecto
 
 
@@ -63,10 +63,12 @@ def abrir_selector_carpeta(event, text_widget):
 
 
 # --- COMPONENTES UI: CONFIGURACIÓN INICIAL ---
-titulo = pn.pane.Markdown("# 🐟 Clasificador de Peces", align="center")
+titulo = pn.pane.Markdown(
+    "# 🐟 Classificador de Peixos de Torredembarra", align="center"
+)
 
 input_dir_widget = pn.widgets.TextInput(
-    name="1. Carpeta de Origen", value=str(Path.cwd())
+    name="1. Carpeta d'Origen", value=str(Path.cwd())
 )
 btn_buscar_origen = pn.widgets.Button(
     name="📁 Buscar", width=100, align="end", button_type="light"
@@ -75,7 +77,7 @@ btn_buscar_origen.on_click(lambda e: abrir_selector_carpeta(e, input_dir_widget)
 row_origen = pn.Row(input_dir_widget, btn_buscar_origen)
 
 output_dir_widget = pn.widgets.TextInput(
-    name="2. Carpeta de Destino", value=str(Path.cwd() / "peces_clasificados")
+    name="2. Carpeta Destí", value=str(Path.cwd() / "peces_clasificados")
 )
 btn_buscar_destino = pn.widgets.Button(
     name="📁 Buscar", width=100, align="end", button_type="light"
@@ -84,11 +86,11 @@ btn_buscar_destino.on_click(lambda e: abrir_selector_carpeta(e, output_dir_widge
 row_destino = pn.Row(output_dir_widget, btn_buscar_destino)
 
 btn_empezar = pn.widgets.Button(
-    name="🚀 Empezar a Clasificar", button_type="primary", height=50
+    name="🚀 Començar a Classificar", button_type="primary", height=50
 )
 
 setup_container = pn.Column(
-    "### Configuración de Carpetas",
+    "### Configuració de Carpetas",
     row_origen,
     row_destino,
     btn_empezar,
@@ -96,14 +98,14 @@ setup_container = pn.Column(
 
 # --- COMPONENTES UI: CLASIFICACIÓN ---
 imagen_visor = pn.pane.JPG(width=500, height=400, sizing_mode="scale_both")
-mensaje = pn.pane.Alert("Configura las carpetas para empezar.", alert_type="secondary")
+mensaje = pn.pane.Alert("Configura les carpetas per començar.", alert_type="secondary")
 
 # Fase 1: Like / Dislike
 btn_like = pn.widgets.Button(
-    name="👍 ME GUSTA (Clasificar)", button_type="success", height=70, width=240
+    name="👍 LIKE (Clasificar)", button_type="success", height=70, width=240
 )
 btn_dislike = pn.widgets.Button(
-    name="👎 PASAR (Siguiente)", button_type="danger", height=70, width=240
+    name="👎 PASSAR (Següent)", button_type="danger", height=70, width=240
 )
 row_like_dislike = pn.Row(btn_like, btn_dislike, visible=False, align="center")
 
@@ -118,21 +120,24 @@ btn_limpiar_descartes = pn.widgets.Button(
 
 # Fase 2: Familias y Especies
 btn_volver = pn.widgets.Button(
-    name="🔙 Me he equivocado (Volver)",
+    name="🔙 M'he equivocat (Tornar enrere)",
     button_type="light",
     button_style="solid",
     height=40,
 )
 contenedor_familias = pn.Column(
-    "### 1. Selecciona la Familia", btn_volver, pn.layout.Divider(), visible=False
+    "### 1. Selecciona la Família de Peixos",
+    btn_volver,
+    pn.layout.Divider(),
+    visible=False,
 )
-contenedor_especies = pn.Column("### 2. Selecciona la Especie", visible=False)
+contenedor_especies = pn.Column("### 2. Selecciona l'Espècie", visible=False)
 
 seccion_otro = pn.widgets.TextInput(
-    name="Escribe la especie manualmente:", placeholder="Nombre científico..."
+    name="Escriu l'espècie manualment:", placeholder="Nom científic..."
 )
 boton_confirmar_otro = pn.widgets.Button(
-    name="Confirmar y Guardar", button_type="warning"
+    name="Confirmar i Guardar", button_type="warning"
 )
 contenedor_manual = pn.Column(seccion_otro, boton_confirmar_otro, visible=False)
 
@@ -151,12 +156,12 @@ app_container = pn.Row(
 def accion_limpiar_descartes(event):
     if os.path.exists(ARCHIVO_DESCARTES):
         os.remove(ARCHIVO_DESCARTES)
-        mensaje.object = "♻️ Descartes restaurados. Re-escaneando imágenes..."
+        mensaje.object = "♻️ Descartes restaurats. Re-escanejant imatges..."
         mensaje.alert_type = "success"
         # Forzar un re-escaneo para que las descartadas vuelvan a entrar en la cola ahora mismo
         iniciar_app(None)
     else:
-        mensaje.object = "ℹ️ No hay imágenes descartadas para limpiar."
+        mensaje.object = "ℹ️ No hi ha imatges descartades per restaurar."
         mensaje.alert_type = "info"
 
 
@@ -165,7 +170,7 @@ def iniciar_app(event):
     state.output_folder = output_dir_widget.value
 
     if not os.path.exists(state.input_folder):
-        mensaje.object = "❌ La carpeta de origen no existe. Revisa la ruta."
+        mensaje.object = "❌ La carpeta d'origen no existeix. Revisa la ruta."
         mensaje.alert_type = "danger"
         return
 
@@ -208,7 +213,7 @@ def cargar_nueva_imagen():
         state.current_image = None
         imagen_visor.object = None
         row_like_dislike.visible = False
-        mensaje.object = "🎉 ¡Has terminado! No quedan imágenes nuevas por clasificar."
+        mensaje.object = "🎉 ¡Has acabat! No queden imatges noves per classificar."
         mensaje.alert_type = "success"
         return
 
@@ -216,7 +221,7 @@ def cargar_nueva_imagen():
     state.imagenes_pendientes.remove(state.current_image)
 
     imagen_visor.object = state.current_image
-    mensaje.object = f"Mostrando: **{os.path.basename(state.current_image)}**"
+    mensaje.object = f"Mostrant: **{os.path.basename(state.current_image)}**"
     mensaje.alert_type = "info"
 
 
@@ -224,7 +229,7 @@ def accion_dislike(event):
     nombre_archivo = Path(state.current_image).name
     with open(ARCHIVO_DESCARTES, "a", encoding="utf-8") as f:
         f.write(f"{nombre_archivo}\n")
-    mensaje.object = f"⏭️ Imagen {nombre_archivo} descartada."
+    mensaje.object = f"⏭️ Imatge {nombre_archivo} descartada."
     mensaje.alert_type = "warning"
     cargar_nueva_imagen()
 
@@ -233,7 +238,7 @@ def accion_like(event):
     row_like_dislike.visible = False
     contenedor_familias.visible = True
     contenedor_especies.clear()
-    contenedor_especies.append("### 2. Selecciona la Especie")
+    contenedor_especies.append("### 2. Selecciona l'Espècie")
     contenedor_especies.visible = True
 
 
@@ -242,14 +247,14 @@ def accion_volver(event):
     contenedor_especies.visible = False
     contenedor_manual.visible = False
     row_like_dislike.visible = True
-    mensaje.object = "🔙 Volviendo a evaluar..."
+    mensaje.object = "🔙 Tornant a evaluar..."
     mensaje.alert_type = "secondary"
 
 
 def seleccionar_familia(event):
     familia = event.obj.name
 
-    if familia == "Otro (Escribir Manual)":
+    if familia == "Altre (Escriure Manual)":
         contenedor_especies.visible = False
         contenedor_manual.visible = True
         return
@@ -258,7 +263,7 @@ def seleccionar_familia(event):
     contenedor_especies.visible = True
     state.familia_seleccionada = familia
     contenedor_especies.clear()
-    contenedor_especies.append(f"### Especies de {familia}")
+    contenedor_especies.append(f"### Espècies de {familia}")
 
     especies = list(PECES_DB[familia].keys()) + ["Otro"]
     for especie in especies:
@@ -279,7 +284,7 @@ def seleccionar_especie(event):
 
 def ejecutar_duplicado_y_renombrado(nombre_cientifico):
     if not nombre_cientifico.strip():
-        mensaje.object = "⚠️ Debes escribir un nombre."
+        mensaje.object = "⚠️ Has d'escriure un nom."
         mensaje.alert_type = "danger"
         return
 
@@ -297,11 +302,11 @@ def ejecutar_duplicado_y_renombrado(nombre_cientifico):
 
         shutil.copy2(path_original, nuevo_path)
 
-        mensaje.object = f"✅ Guardado en: **{nombre_seguro_carpeta} / {nuevo_nombre}**"
+        mensaje.object = f"✅ Guardat a: **{nombre_seguro_carpeta} / {nuevo_nombre}**"
         mensaje.alert_type = "success"
         cargar_nueva_imagen()
     except Exception as e:
-        mensaje.object = f"❌ Error guardando: {str(e)}"
+        mensaje.object = f"❌ Error guardant: {str(e)}"
         mensaje.alert_type = "danger"
 
 
@@ -321,7 +326,7 @@ for fam in PECES_DB.keys():
     contenedor_familias.append(btn_fam)
 
 btn_fam_otro = pn.widgets.Button(
-    name="Otro (Escribir Manual)", button_type="warning", height=50
+    name="Altre (Escriure Manual)", button_type="warning", height=50
 )
 btn_fam_otro.on_click(seleccionar_familia)
 contenedor_familias.append(pn.layout.Divider())

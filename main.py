@@ -29,9 +29,33 @@ body {
     font-size: 16px !important;
     font-weight: bold !important;
 }
+
+/* -- ESTILS PER FER EL POP-UP GEGANT I SÒLID -- */
+.notyf__toast, .bk-toast {
+    max-width: 600px !important;
+    padding: 30px 50px !important;
+    border-radius: 20px !important;
+    background-image: none !important; /* Elimina el fundit/degradat base */
+    opacity: 1 !important;             /* Força que sigui 100% opac */
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.3) !important;
+}
+.notyf__message, .bk-toast-message {
+    font-size: 28px !important;
+    font-weight: bold !important;
+    text-align: center !important;
+}
+
+/* Colors concrets per cada tipus d'avís */
+.notyf__toast--success, .bk-toast-success {
+    background-color: #27ae60 !important; /* Verd sòlid per èxit */
+}
+.notyf__toast--error, .bk-toast-error {
+    background-color: #e74c3c !important; /* Vermell sòlid per error */
+}
 """
 
-pn.extension(raw_css=[estils_css], sizing_mode="stretch_width")
+pn.extension(raw_css=[estils_css], sizing_mode="stretch_width", notifications=True)
+pn.state.notifications.position = "center-right"
 
 # --- CÀRREGA DE DADES I CONFIGURACIÓ ---
 ARCHIVO_DATOS = "peixos.json"
@@ -172,7 +196,9 @@ contenedor_familias = pn.Column(
 )
 contenedor_especies = pn.Column("## 2. Espècie", visible=False)
 
-seccion_otro = pn.widgets.TextInput(name="Manual:", placeholder="Nom científic...")
+seccion_otro = pn.widgets.TextInput(
+    name="ESCIURE AQUÍ A SOTA EL NOM DE L'ESPÈCIE:", placeholder="Nom científic..."
+)
 boton_confirmar_otro = pn.widgets.Button(
     name="Desar Nom", button_type="warning", height=50
 )
@@ -284,7 +310,7 @@ def cargar_nueva_imagen():
 
 def seleccionar_familia(event):
     familia = event.obj.name
-    if familia == "Altre (Manual)":
+    if familia == "ALTRE (ESCRIURE MANUAL)":
         contenedor_especies.visible = False
         contenedor_manual.visible = True
         return
@@ -294,7 +320,7 @@ def seleccionar_familia(event):
     contenedor_especies.clear()
     contenedor_especies.append(f"### Espècies de {familia}")
 
-    especies = list(PECES_DB[familia].keys()) + ["Altre"]
+    especies = list(PECES_DB[familia].keys()) + ["ALTRE (ESCRIURE MANUAL)"]
     for especie in especies:
         btn = pn.widgets.Button(name=especie, button_type="light", height=45)
         btn.on_click(seleccionar_especie)
@@ -358,13 +384,22 @@ def ejecutar_duplicado_y_renombrado(nombre_cientifico):
             folder / f"{path_orig.stem}_[{nombre_cientifico}]{path_orig.suffix}",
         )
         state.n_classificats += 1
+
+        # --- NUEVA LÍNEA: Mostrar el pop-up de éxito ---
+        # duration=3000 hace que el mensaje desaparezca solo después de 3 segundos
+        pn.state.notifications.success(
+            f"✅ Classificat: {nombre_cientifico}", duration=3000
+        )
+
         cargar_nueva_imagen()
     except Exception as e:
         mensaje.object = f"Error: {e}"
+        # También podemos añadir un pop-up rojo para los errores
+        pn.state.notifications.error(f"Error al desar: {e}", duration=5000)
 
 
 def seleccionar_especie(event):
-    if event.obj.name == "Altre":
+    if event.obj.name == "ALTRE (ESCRIURE MANUAL)":
         contenedor_especies.visible = False
         contenedor_manual.visible = True
     else:
@@ -416,7 +451,7 @@ for fam in PECES_DB.keys():
     contenedor_familias.append(btn_fam)
 
 btn_fam_otro = pn.widgets.Button(
-    name="Altre (Manual)", button_type="warning", height=50
+    name="ALTRE (ESCRIURE MANUAL)", button_type="warning", height=50
 )
 btn_fam_otro.on_click(seleccionar_familia)
 contenedor_familias.append(pn.layout.Divider())

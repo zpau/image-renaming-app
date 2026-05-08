@@ -12,3 +12,7 @@ wheels/
 descartats.txt
 
 *.bat
+
+.code-workspace
+
+peixos_classificats/

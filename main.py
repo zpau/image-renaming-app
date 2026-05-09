@@ -12,18 +12,17 @@ body {
     background-color: #c6d6d5; 
 }
 .header-container {
-    /* Degradat de blau fosc a un blau més viu */
     background: linear-gradient(90deg, #2c3e50 0%, #4ca1af 100%);
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 10px;
-    box-shadow: 0px 4px 15px rgba(0,0,0,0.2); /* Una ombra més marcada perquè ressalti */
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.2); 
 }
 .header-container h1 {
     text-align: center;
     color: white !important; 
     margin: 0;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Ombra al text per a millor lectura */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3); 
 }
 .bk-btn {
     font-size: 16px !important;
@@ -35,8 +34,8 @@ body {
     max-width: 600px !important;
     padding: 30px 50px !important;
     border-radius: 20px !important;
-    background-image: none !important; /* Elimina el fundit/degradat base */
-    opacity: 1 !important;             /* Força que sigui 100% opac */
+    background-image: none !important; 
+    opacity: 1 !important;             
     box-shadow: 0px 5px 15px rgba(0,0,0,0.3) !important;
 }
 .notyf__message, .bk-toast-message {
@@ -45,12 +44,50 @@ body {
     text-align: center !important;
 }
 
-/* Colors concrets per cada tipus d'avís */
 .notyf__toast--success, .bk-toast-success {
-    background-color: #27ae60 !important; /* Verd sòlid per èxit */
+    background-color: #27ae60 !important; 
 }
 .notyf__toast--error, .bk-toast-error {
-    background-color: #e74c3c !important; /* Vermell sòlid per error */
+    background-color: #e74c3c !important; 
+}
+
+/* -- LIGHTBOX NATIVO (MODE GEGANT) -- */
+
+/* 1. El contenedor por defecto está escondido */
+.contenedor-lightbox {
+    display: none !important; 
+}
+
+/* 2. Solo cuando añadimos la clase '.actiu' se despliega y oscurece todo */
+.contenedor-lightbox.actiu {
+    display: flex !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(0, 0, 0, 0.98) !important;
+    z-index: 999999 !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px !important;
+    margin: 0 !important;
+}
+
+/* 3. La imagen dentro del lightbox activo (AQUÍ ES DONDE SE HACE ENORME) */
+.contenedor-lightbox.actiu img {
+    max-height: 92vh !important; /* Casi toda la altura de la pantalla */
+    max-width: 95vw !important;  /* Casi todo el ancho */
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border: 2px solid #333;
+    box-shadow: 0px 0px 60px rgba(0,0,0,1);
+}
+
+.btn-cerrar-lightbox {
+    margin-top: 15px !important;
 }
 """
 
@@ -124,7 +161,6 @@ btn_buscar_origen = pn.widgets.Button(
 input_dir_widget = pn.widgets.TextInput(
     name="1. Carpeta d'Origen", value=str(Path.cwd()), width=500
 )
-btn_buscar_origen.on_click(lambda e: abrir_selector_carpeta(e, input_dir_widget))
 row_origen = pn.Row(btn_buscar_origen, input_dir_widget)
 
 btn_buscar_destino = pn.widgets.Button(
@@ -135,7 +171,6 @@ output_dir_widget = pn.widgets.TextInput(
     value=str(Path.cwd() / "peixos_classificats"),
     width=500,
 )
-btn_buscar_destino.on_click(lambda e: abrir_selector_carpeta(e, output_dir_widget))
 row_destino = pn.Row(btn_buscar_destino, output_dir_widget)
 
 btn_empezar = pn.widgets.Button(
@@ -157,7 +192,12 @@ setup_container = pn.Column(
 )
 
 # --- COMPONENTS UI: CLASSIFICACIÓ ---
-imagen_visor = pn.pane.JPG(sizing_mode="scale_both", max_height=600, align="center")
+imagen_visor = pn.pane.Image(
+    sizing_mode="scale_both",
+    max_height=600,
+    align="center",
+    css_classes=["visor-imatge"],
+)
 mensaje = pn.pane.Alert(
     "Configura les carpetes per començar.",
     alert_type="secondary",
@@ -184,12 +224,35 @@ btn_limpiar_descartes = pn.widgets.Button(
     align="center",
 )
 
-# 1a Columna (Imatge i controls principals)
-col_imatge_esquerra = pn.Column(
-    imagen_visor, row_like_dislike, mensaje, btn_limpiar_descartes, width=850
+# --- BOTÓN PARA ABRIR LIGHTBOX ---
+btn_fullscreen = pn.widgets.Button(
+    name="🔍 VEURE EN GRAN (Pop-up fosc)",
+    button_type="primary",
+    button_style="outline",
+    height=45,
+    width=800,
+    align="center",
 )
 
-# 2a i 3a Columna: Famílies i Espècies
+# --- COMPONENTS LIGHTBOX ---
+imagen_lightbox = pn.pane.Image(sizing_mode="scale_both", align="center")
+btn_cerrar_lightbox = pn.widgets.Button(
+    name="❌ TANCAR (Tornar a la classificació)",
+    button_type="danger",
+    height=50,
+    width=400,
+    align="center",
+    css_classes=["btn-cerrar-lightbox"],
+)
+
+# El panel empieza con la clase base (que tiene display: none)
+lightbox_panel = pn.Column(
+    imagen_lightbox,
+    btn_cerrar_lightbox,
+    css_classes=["contenedor-lightbox"],
+    sizing_mode="stretch_both",
+)
+
 btn_volver = pn.widgets.Button(name="🔙 Tornar", button_type="light", height=40)
 contenedor_familias = pn.Column(
     "## 1. Família", btn_volver, pn.layout.Divider(), visible=False
@@ -203,7 +266,6 @@ boton_confirmar_otro = pn.widgets.Button(
     name="Desar Nom", button_type="warning", height=50
 )
 contenedor_manual = pn.Column(seccion_otro, boton_confirmar_otro, visible=False)
-
 
 # --- 4a COLUMNA: INDICADORS VISUALS ---
 ind_pendents = pn.indicators.Number(
@@ -235,27 +297,22 @@ ind_descartades = pn.indicators.Number(
 )
 
 grup_comptadors_vertical = pn.Column(
-    ind_pendents,
-    ind_classificats,
-    ind_descartades,
-    align="center",
+    ind_pendents, ind_classificats, ind_descartades, align="center"
 )
 
-
 # --- SUPER CONTENIDOR PRINCIPAL RESPONSIVE ---
-
-# 1a Columna: La imagen (Mantenemos un ancho mínimo grande)
+# (Se unifica la definición para que el botón esté presente)
 col_imatge_esquerra = pn.Column(
     imagen_visor,
+    btn_fullscreen,  # AQUÍ ESTÁ EL BOTÓN
     row_like_dislike,
     mensaje,
     btn_limpiar_descartes,
     sizing_mode="stretch_width",
-    min_width=700,  # Esto asegura que la imagen siempre tenga un espacio protagonista
+    min_width=700,
     margin=(0, 10),
 )
 
-# 2a, 3a y 4a Columna: Se adaptarán proporcionalmente
 app_container = pn.Row(
     col_imatge_esquerra,
     pn.Column(contenedor_familias, sizing_mode="stretch_width", min_width=200),
@@ -273,13 +330,11 @@ app_container = pn.Row(
         align="center",
     ),
     visible=False,
-    sizing_mode="stretch_width",  # Hace que la fila ocupe todo el ancho de la pantalla
+    sizing_mode="stretch_width",
 )
 
 
-# --- LÒGICA ---
-
-
+# --- LÒGICA (FUNCIONES) ---
 def actualizar_indicadores():
     ind_pendents.value = len(state.imagenes_pendientes) + (
         1 if state.current_image else 0
@@ -293,19 +348,26 @@ def cargar_nueva_imagen():
     contenedor_familias.visible = False
     contenedor_especies.visible = False
     contenedor_manual.visible = False
-    if not state.imagenes_pendientes:
-        state.current_image = None
-        imagen_visor.object = None
-        row_like_dislike.visible = False
-        actualizar_indicadores()
-        mensaje.object = "🎉 Has acabat!"
-        mensaje.alert_type = "success"
-        return
-    state.current_image = random.choice(state.imagenes_pendientes)
-    state.imagenes_pendientes.remove(state.current_image)
-    imagen_visor.object = state.current_image
-    mensaje.object = f"Mostrant: **{os.path.basename(state.current_image)}**"
+
+    while state.imagenes_pendientes:
+        state.current_image = random.choice(state.imagenes_pendientes)
+        state.imagenes_pendientes.remove(state.current_image)
+        try:
+            imagen_visor.object = state.current_image
+            mensaje.object = f"Mostrant: **{os.path.basename(state.current_image)}**"
+            actualizar_indicadores()
+            return
+        except Exception as e:
+            print(
+                f"⚠️ Saltant imatge il·legible: {os.path.basename(state.current_image)} - Error: {e}"
+            )
+
+    state.current_image = None
+    imagen_visor.object = None
+    row_like_dislike.visible = False
     actualizar_indicadores()
+    mensaje.object = "🎉 Has acabat!"
+    mensaje.alert_type = "success"
 
 
 def seleccionar_familia(event):
@@ -319,7 +381,6 @@ def seleccionar_familia(event):
     state.familia_seleccionada = familia
     contenedor_especies.clear()
     contenedor_especies.append(f"### Espècies de {familia}")
-
     especies = list(PECES_DB[familia].keys()) + ["ALTRE (ESCRIURE MANUAL)"]
     for especie in especies:
         btn = pn.widgets.Button(name=especie, button_type="light", height=45)
@@ -384,17 +445,12 @@ def ejecutar_duplicado_y_renombrado(nombre_cientifico):
             folder / f"{path_orig.stem}_[{nombre_cientifico}]{path_orig.suffix}",
         )
         state.n_classificats += 1
-
-        # --- NUEVA LÍNEA: Mostrar el pop-up de éxito ---
-        # duration=3000 hace que el mensaje desaparezca solo después de 3 segundos
         pn.state.notifications.success(
             f"✅ Classificat: {nombre_cientifico}", duration=3000
         )
-
         cargar_nueva_imagen()
     except Exception as e:
         mensaje.object = f"Error: {e}"
-        # También podemos añadir un pop-up rojo para los errores
         pn.state.notifications.error(f"Error al desar: {e}", duration=5000)
 
 
@@ -419,17 +475,6 @@ def accion_limpiar_descartes(event):
         mensaje.alert_type = "info"
 
 
-# --- CONNECCIONS DE BOTONS ---
-btn_empezar.on_click(iniciar_app)
-btn_like.on_click(lambda e: accion_like(e))
-btn_dislike.on_click(accion_dislike)
-btn_volver.on_click(lambda e: accion_volver(e))
-btn_limpiar_descartes.on_click(accion_limpiar_descartes)
-boton_confirmar_otro.on_click(
-    lambda e: ejecutar_duplicado_y_renombrado(seccion_otro.value)
-)
-
-
 def accion_like(e):
     row_like_dislike.visible = False
     contenedor_familias.visible = True
@@ -442,6 +487,22 @@ def accion_volver(e):
     row_like_dislike.visible = True
     mensaje.object = "🔙 Tornant a avaluar la imatge..."
     mensaje.alert_type = "secondary"
+
+
+def abrir_lightbox(e):
+    imagen_lightbox.object = state.current_image
+    # Añadimos la clase 'actiu' para que el CSS lo muestre
+    lightbox_panel.css_classes = ["contenedor-lightbox", "actiu"]
+
+
+def cerrar_lightbox(e):
+    # Quitamos la clase 'actiu' para que el CSS lo vuelva a ocultar
+    lightbox_panel.css_classes = ["contenedor-lightbox"]
+
+
+# Conexiones
+btn_fullscreen.on_click(abrir_lightbox)
+btn_cerrar_lightbox.on_click(cerrar_lightbox)
 
 
 # --- GENERAR BOTONS DE FAMÍLIES ---
@@ -457,8 +518,25 @@ btn_fam_otro.on_click(seleccionar_familia)
 contenedor_familias.append(pn.layout.Divider())
 contenedor_familias.append(btn_fam_otro)
 
+# --- CONNECCIONS DE BOTONS ---
+btn_buscar_origen.on_click(lambda e: abrir_selector_carpeta(e, input_dir_widget))
+btn_buscar_destino.on_click(lambda e: abrir_selector_carpeta(e, output_dir_widget))
+btn_empezar.on_click(iniciar_app)
+btn_like.on_click(accion_like)
+btn_dislike.on_click(accion_dislike)
+btn_volver.on_click(accion_volver)
+btn_limpiar_descartes.on_click(accion_limpiar_descartes)
+boton_confirmar_otro.on_click(
+    lambda e: ejecutar_duplicado_y_renombrado(seccion_otro.value)
+)
+
 # --- RENDERITZAT FINAL ---
 layout = pn.Column(
-    titulo, setup_container, app_container, align="center", sizing_mode="stretch_width"
+    titulo,
+    setup_container,
+    app_container,
+    lightbox_panel,  # Asegúrate de que esto está aquí
+    align="center",
+    sizing_mode="stretch_width",
 )
 layout.servable()

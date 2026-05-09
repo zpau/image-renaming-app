@@ -1,55 +1,72 @@
-Sigue estos pasos en el Mac de tu padre:
+# Guía de Instalación: Classificador de Peixos (Mac)
 
-### 1. Crea el archivo ´"Inicia_App.command"´
+Sigue estos pasos en el Mac de tu padre para dejar la aplicación lista:
 
-```
+### 1. Crea el archivo `Inicia_App.command`
+
+Crea un archivo de texto en la misma carpeta donde está `main.py`, ponle el nombre `Inicia_App.command` y pega este contenido:
+
+```bash
 #!/bin/bash
 
-# Això és màgia de Mac perquè el script sàpiga automàticament a quina carpeta és
+# Magic de Mac para situarse en la carpeta del script
 cd "$(dirname "$0")"
 
+# --- MEJORA: LIMPIEZA DE PUERTO ---
+# Cerramos cualquier sesión anterior que se haya quedado abierta en el puerto 5006
+lsof -ti:5006 | xargs kill -9 2>/dev/null
+
 echo "========================================="
-echo "  Iniciant el Classificador de Peixos..."
+echo "   Iniciant el Classificador de Peixos..."
 echo "========================================="
 
-# Comprova si la carpeta venv NO existeix
+# Comprobación del entorno virtual (venv)
 if [ ! -d "venv" ]; then
     echo ""
     echo "[!] Es la primera vegada que s'obre l'app."
-    echo "[!] Configurant el sistema per al papa... Aixo trigara un minutet."
+    echo "[!] Configurant el sistema... Aixo trigara un minutet."
     echo ""
     python3 -m venv venv
     source venv/bin/activate
     pip3 install panel
 else
-    # Si ja existeix, simplement l'activa
+    # Si ya existe, simplemente lo activa
     source venv/bin/activate
 fi
 
 echo ""
 echo "Obrint l'aplicacio al navegador..."
-panel serve main.py --show
+# Lanzamos la app asegurando el puerto 5006
+python3 -m panel serve main.py --show --port 5006
 ```
 
-### 2. Abre Automator
-1. Pulsa la lupa de arriba a la derecha (Spotlight) en el Mac o pulsa `Cmd + Espacio`.
-2. Escribe **Automator** y abre la aplicación (tiene el icono de un robot con un tubo).
-3. Al abrirse, te preguntará qué tipo de documento quieres crear. Selecciona **Aplicación** (o Application) y dale a "Seleccionar".
+> **Nota Importante:** Una vez creado el archivo, abre la Terminal y escribe `chmod +x ` (con un espacio al final), arrastra el archivo `Inicia_App.command` a la ventana y pulsa Enter. Esto le da permiso para ejecutarse.
 
-### 3. Añade el comando
-1. En la parte superior izquierda verás un buscador. Escribe **"Ejecutar script de la shell"** (o Run Shell Script si tiene el Mac en inglés).
-2. Haz doble clic en esa opción (o arrástrala al espacio gris grande de la derecha).
-3. Verás que aparece un recuadro de texto que por defecto tiene escrita la palabra `cat`. Bórrala.
-4. En ese recuadro, tienes que escribir `bash`  (con el espacio) y **pegar la ruta exacta** hacia tu archivo `.command`.
-   - Truco para no escribir la ruta a mano: Abre la carpeta donde tienes el archivo `Inicia_App.command`, arrástralo y suéltalo dentro de ese recuadro de texto de Automator. Él solo escribirá la ruta completa.
-Al final, en el recuadro debería quedar algo así:
-´bash /Users/NombreDeTuPadre/Desktop/AppPeces/Inicia_App.command´
+---
 
-1. Guárdalo como una App
-En el menú superior del Mac, haz clic en **Archivo -> Guardar** (o ´Cmd + S´).
+### 2. Configura la App con Automator
 
-Ponle el nombre que quieras, por ejemplo: **Clasificador de Peces**.
+Para que tu padre no tenga que ver la terminal, usaremos Automator para crearle un icono de aplicación:
 
-Elige guardarlo directamente en el **Escritorio**.
+1.  **Abre Automator:** Pulsa `Cmd + Espacio`, escribe "Automator" y ábrelo.
+2.  **Nuevo Documento:** Selecciona **"Aplicación"** (Application) y dale a "Seleccionar".
+3.  **Añade la acción:** En el buscador de la izquierda escribe **"Ejecutar el script de la shell"** (Run Shell Script) y arrástralo al área de la derecha.
+4.  **Configura el script:**
+    * En el recuadro que aparece, borra cualquier texto (como `cat`).
+    * Escribe la palabra `bash` seguido de un espacio.
+    * **Arrastra** tu archivo `Inicia_App.command` dentro del recuadro. Automator escribirá la ruta completa por ti.
+    * Debería quedar algo como: `bash /Users/Nombre/Desktop/Peixos/Inicia_App.command`
+5.  **Guarda la App:** Ve a **Archivo -> Guardar** (Cmd + S).
+    * Nombre: **Clasificador de Peces**.
+    * Ubicación: **Escritorio**.
 
-¡Y ya lo tienes! Ahora tu padre tendrá una aplicación real en su escritorio. Cuando haga doble clic, Automator se encargará de abrir la terminal por detrás, ejecutar el Plan B y lanzar el navegador con tu código.
+---
+
+### ¿Cómo funciona ahora?
+
+1.  **Doble clic:** Tu padre hace doble clic en el icono del robot (o el que le pongas) en su escritorio.
+2.  **Limpieza:** Automator ejecuta el script, que primero "mata" cualquier proceso que estuviera usando el puerto 5006.
+3.  **Carga:** Activa el entorno virtual silenciosamente.
+4.  **Navegador:** Se abre Safari o Chrome directamente con la aplicación lista para clasificar imágenes.
+
+Con este setup, aunque tu padre cierre mal la aplicación o le dé dos veces al icono, el script siempre limpiará el puerto antes de empezar, evitando cualquier mensaje de error técnico.

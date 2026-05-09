@@ -203,6 +203,11 @@ mensaje = pn.pane.Alert(
     alert_type="secondary",
     width=800,
     align="center",
+    styles={
+        "font-size": "14px",  # Tamaño de la letra (ajústalo si lo quieres aún mayor)
+        "padding": "2px 20px",  # Espacio interior para que la caja sea más grande
+        "text-align": "center",  # Centramos el texto para que se vea más ordenado
+    },
 )
 
 btn_like = pn.widgets.Button(
@@ -224,9 +229,19 @@ btn_limpiar_descartes = pn.widgets.Button(
     align="center",
 )
 
+btn_confirmar_si = pn.widgets.Button(
+    name="✅ Sí, restaurar", button_type="danger", height=40, width=390
+)
+btn_confirmar_no = pn.widgets.Button(
+    name="❌ Cancel·lar", button_type="success", height=40, width=390
+)
+row_confirmacion_descartes = pn.Row(
+    btn_confirmar_si, btn_confirmar_no, visible=False, width=800, align="center"
+)
+
 # --- BOTÓN PARA ABRIR LIGHTBOX ---
 btn_fullscreen = pn.widgets.Button(
-    name="🔍 VEURE EN GRAN (Pop-up fosc)",
+    name="🔍 VEURE EN GRAN",
     button_type="primary",
     button_style="outline",
     height=45,
@@ -304,10 +319,11 @@ grup_comptadors_vertical = pn.Column(
 # (Se unifica la definición para que el botón esté presente)
 col_imatge_esquerra = pn.Column(
     imagen_visor,
-    btn_fullscreen,  # AQUÍ ESTÁ EL BOTÓN
+    btn_fullscreen,
     row_like_dislike,
     mensaje,
     btn_limpiar_descartes,
+    row_confirmacion_descartes,  # <-- AÑADIR ESTA LÍNEA AQUÍ
     sizing_mode="stretch_width",
     min_width=700,
     margin=(0, 10),
@@ -464,7 +480,32 @@ def seleccionar_especie(event):
         )
 
 
+# --- NUEVAS FUNCIONES DE CONFIRMACIÓN ---
+def pedir_confirmacion_descartes(event):
+    btn_limpiar_descartes.visible = False
+    row_confirmacion_descartes.visible = True
+    mensaje.object = (
+        "⚠️ **Estàs segur que vols restaurar totes les imatges descartades?**"
+    )
+    mensaje.alert_type = "warning"
+
+
+def cancelar_restauracion(event):
+    row_confirmacion_descartes.visible = False
+    btn_limpiar_descartes.visible = True
+    # Volvemos a mostrar el nombre de la imagen actual
+    if state.current_image:
+        mensaje.object = f"Mostrant: **{os.path.basename(state.current_image)}**"
+    else:
+        mensaje.object = "🎉 Has acabat!"
+    mensaje.alert_type = "secondary"
+
+
 def accion_limpiar_descartes(event):
+    # Restauramos la visibilidad de los botones
+    row_confirmacion_descartes.visible = False
+    btn_limpiar_descartes.visible = True
+
     if os.path.exists(ARCHIVO_DESCARTES):
         os.remove(ARCHIVO_DESCARTES)
         mensaje.object = "♻️ Imatges restaurades. Re-escanejant la carpeta..."
@@ -473,6 +514,8 @@ def accion_limpiar_descartes(event):
     else:
         mensaje.object = "ℹ️ No hi ha imatges descartades per restaurar."
         mensaje.alert_type = "info"
+        if state.current_image:
+            mensaje.object = f"ℹ️ No hi ha descartades. Mostrant: **{os.path.basename(state.current_image)}**"
 
 
 def accion_like(e):
@@ -525,7 +568,9 @@ btn_empezar.on_click(iniciar_app)
 btn_like.on_click(accion_like)
 btn_dislike.on_click(accion_dislike)
 btn_volver.on_click(accion_volver)
-btn_limpiar_descartes.on_click(accion_limpiar_descartes)
+btn_limpiar_descartes.on_click(pedir_confirmacion_descartes)
+btn_confirmar_si.on_click(accion_limpiar_descartes)
+btn_confirmar_no.on_click(cancelar_restauracion)
 boton_confirmar_otro.on_click(
     lambda e: ejecutar_duplicado_y_renombrado(seccion_otro.value)
 )

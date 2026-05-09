@@ -388,16 +388,58 @@ def cargar_nueva_imagen():
 
 def seleccionar_familia(event):
     familia = event.obj.name
-    if familia == "ALTRE (ESCRIURE MANUAL)":
+
+    if familia == "✏️ ALTRE (ESCRIURE MANUAL) ✏️":
         contenedor_especies.visible = False
         contenedor_manual.visible = True
         return
+
     contenedor_manual.visible = False
     contenedor_especies.visible = True
     state.familia_seleccionada = familia
     contenedor_especies.clear()
+
+    # --- NUEVA LÓGICA: Categoría de especies de la carpeta ---
+    if familia == "📂 Altres (Ja creades a la carpeta) 📂":
+        contenedor_especies.append(f"### {familia}")
+
+        # 1. Recopilar todos los nombres que ya están en el JSON para ignorarlos
+        nombres_db = set(
+            limpiar_nombre_carpeta(nom)
+            for fam in PECES_DB.values()
+            for nom in fam.values()
+        )
+
+        # 2. Leer las carpetas del directorio destino
+        especies_extra = []
+        if os.path.exists(state.output_folder):
+            for item in os.listdir(state.output_folder):
+                ruta_item = os.path.join(state.output_folder, item)
+                # Si es una carpeta y no está en el JSON, la añadimos a la lista
+                if os.path.isdir(ruta_item) and item not in nombres_db:
+                    especies_extra.append(item)
+
+        # 3. Generar los botones o mostrar mensaje si está vacío
+        if not especies_extra:
+            contenedor_especies.append("*(No s'han trobat carpetes noves)*")
+        else:
+            for especie in sorted(especies_extra):
+                btn = pn.widgets.Button(name=especie, button_type="light", height=45)
+                btn.on_click(seleccionar_especie)
+                contenedor_especies.append(btn)
+
+        # Añadimos también el botón manual por si acaso
+        btn_manual = pn.widgets.Button(
+            name="✏️ ALTRE (ESCRIURE MANUAL) ✏️", button_type="light", height=45
+        )
+        btn_manual.on_click(seleccionar_especie)
+        contenedor_especies.append(pn.layout.Divider())
+        contenedor_especies.append(btn_manual)
+        return
+
+    # --- LÓGICA ORIGINAL PARA FAMILIAS NORMALES ---
     contenedor_especies.append(f"### Espècies de {familia}")
-    especies = list(PECES_DB[familia].keys()) + ["ALTRE (ESCRIURE MANUAL)"]
+    especies = list(PECES_DB[familia].keys()) + ["✏️ ALTRE (ESCRIURE MANUAL) ✏️"]
     for especie in especies:
         btn = pn.widgets.Button(name=especie, button_type="light", height=45)
         btn.on_click(seleccionar_especie)
@@ -471,10 +513,14 @@ def ejecutar_duplicado_y_renombrado(nombre_cientifico):
 
 
 def seleccionar_especie(event):
-    if event.obj.name == "ALTRE (ESCRIURE MANUAL)":
+    if event.obj.name == "✏️ ALTRE (ESCRIURE MANUAL) ✏️":
         contenedor_especies.visible = False
         contenedor_manual.visible = True
+    elif state.familia_seleccionada == "📂 Altres (Ja creades a la carpeta) 📂":
+        # --- NUEVO: Si viene de la carpeta extra, el nombre del botón ya es el nombre científico ---
+        ejecutar_duplicado_y_renombrado(event.obj.name)
     else:
+        # Original: Busca en el JSON
         ejecutar_duplicado_y_renombrado(
             PECES_DB[state.familia_seleccionada][event.obj.name]
         )
@@ -554,8 +600,14 @@ for fam in PECES_DB.keys():
     btn_fam.on_click(seleccionar_familia)
     contenedor_familias.append(btn_fam)
 
+btn_fam_carpetas = pn.widgets.Button(
+    name="📂 Altres (Ja creades a la carpeta) 📂", button_type="primary", height=50
+)
+btn_fam_carpetas.on_click(seleccionar_familia)
+contenedor_familias.append(btn_fam_carpetas)
+
 btn_fam_otro = pn.widgets.Button(
-    name="ALTRE (ESCRIURE MANUAL)", button_type="warning", height=50
+    name="✏️ ALTRE (ESCRIURE MANUAL) ✏️", button_type="warning", height=50
 )
 btn_fam_otro.on_click(seleccionar_familia)
 contenedor_familias.append(pn.layout.Divider())

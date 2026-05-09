@@ -5,6 +5,9 @@ import os
 import shutil
 import re
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()  # Carga las variables de entorno desde el archivo .env
 
 # --- ESTILS CSS ACTUALITZATS ---
 estils_css = """
@@ -158,9 +161,16 @@ titulo = pn.pane.HTML(
 btn_buscar_origen = pn.widgets.Button(
     name="📁 Cercar", width=120, height=45, button_type="primary", align="end"
 )
+
+# Intenta leer una ruta predefinida del sistema, si no existe, usa la actual
+ruta_inicial = os.getenv("RUTA_FOTOS_PEIXOS", str(Path.cwd()))
+
 input_dir_widget = pn.widgets.TextInput(
-    name="1. Carpeta d'Origen", value=str(Path.cwd()), width=500
+    name="1. Carpeta d'Origen",
+    value=ruta_inicial,  # <--- Usamos la variable aquí
+    width=500,
 )
+
 row_origen = pn.Row(btn_buscar_origen, input_dir_widget)
 
 btn_buscar_destino = pn.widgets.Button(

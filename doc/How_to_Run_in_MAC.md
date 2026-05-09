@@ -28,7 +28,7 @@ if [ ! -d "venv" ]; then
     echo ""
     python3 -m venv venv
     source venv/bin/activate
-    pip3 install panel
+    pip3 install panel python-dotenv
 else
     # Si ya existe, simplemente lo activa
     source venv/bin/activate
@@ -36,11 +36,15 @@ fi
 
 echo ""
 echo "Obrint l'aplicacio al navegador..."
+
+export RUTA_FOTOS_PEIXOS="/Users/TuPadre/Desktop/Fotos_Peixos"
+
 # Lanzamos la app asegurando el puerto 5006
 python3 -m panel serve main.py --show --port 5006
 ```
+> **Nota Importante 1:** Acuerdate de cambiar la ruta `RUTA_FOTOS_PEIXOS` por la ruta donde estan las fotos de los peces
 
-> **Nota Importante:** Una vez creado el archivo, abre la Terminal y escribe `chmod +x ` (con un espacio al final), arrastra el archivo `Inicia_App.command` a la ventana y pulsa Enter. Esto le da permiso para ejecutarse.
+> **Nota Importante 2:** Una vez creado el archivo, abre la Terminal y escribe `chmod +x ` (con un espacio al final), arrastra el archivo `Inicia_App.command` a la ventana y pulsa Enter. Esto le da permiso para ejecutarse.
 
 ---
 

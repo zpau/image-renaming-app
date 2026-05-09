@@ -201,42 +201,29 @@ imagen_visor = pn.pane.Image(
 mensaje = pn.pane.Alert(
     "Configura les carpetes per començar.",
     alert_type="secondary",
-    width=800,
+    sizing_mode="stretch_width",  # <-- CAMBIADO
     align="center",
     styles={
-        "font-size": "14px",  # Tamaño de la letra (ajústalo si lo quieres aún mayor)
-        "padding": "2px 20px",  # Espacio interior para que la caja sea más grande
-        "text-align": "center",  # Centramos el texto para que se vea más ordenado
+        "font-size": "14px",
+        "padding": "2px 20px",
+        "text-align": "center",
     },
 )
 
 btn_like = pn.widgets.Button(
-    name="👍 M'AGRADA (Classificar)", button_type="success", height=60, width=380
+    name="👍 M'AGRADA (Classificar)",
+    button_type="success",
+    height=60,
+    sizing_mode="stretch_width",
 )
 btn_dislike = pn.widgets.Button(
-    name="👎 PASSAR (Següent Imatge)", button_type="danger", height=60, width=380
+    name="👎 PASSAR (Següent Imatge)",
+    button_type="danger",
+    height=60,
+    sizing_mode="stretch_width",
 )
 row_like_dislike = pn.Row(
-    btn_like, btn_dislike, visible=False, width=800, align="center"
-)
-
-btn_limpiar_descartes = pn.widgets.Button(
-    name="♻️ Restaurar Descartades",
-    button_type="danger",
-    button_style="outline",
-    height=40,
-    width=800,
-    align="center",
-)
-
-btn_confirmar_si = pn.widgets.Button(
-    name="✅ Sí, restaurar", button_type="danger", height=40, width=390
-)
-btn_confirmar_no = pn.widgets.Button(
-    name="❌ Cancel·lar", button_type="success", height=40, width=390
-)
-row_confirmacion_descartes = pn.Row(
-    btn_confirmar_si, btn_confirmar_no, visible=False, width=800, align="center"
+    btn_like, btn_dislike, visible=False, sizing_mode="stretch_width", align="center"
 )
 
 # --- BOTÓN PARA ABRIR LIGHTBOX ---
@@ -245,7 +232,33 @@ btn_fullscreen = pn.widgets.Button(
     button_type="primary",
     button_style="outline",
     height=45,
-    width=800,
+    sizing_mode="stretch_width",  # <-- CAMBIADO
+    align="center",
+)
+
+btn_limpiar_descartes = pn.widgets.Button(
+    name="♻️ Restaurar Descartades",
+    button_type="danger",
+    button_style="outline",
+    height=40,
+    sizing_mode="stretch_width",  # <-- CAMBIADO
+    align="center",
+)
+
+btn_confirmar_si = pn.widgets.Button(
+    name="✅ Sí, restaurar",
+    button_type="danger",
+    height=40,
+    sizing_mode="stretch_width",
+)
+btn_confirmar_no = pn.widgets.Button(
+    name="❌ Cancel·lar", button_type="success", height=40, sizing_mode="stretch_width"
+)
+row_confirmacion_descartes = pn.Row(
+    btn_confirmar_si,
+    btn_confirmar_no,
+    visible=False,
+    sizing_mode="stretch_width",
     align="center",
 )
 
@@ -268,7 +281,7 @@ lightbox_panel = pn.Column(
     sizing_mode="stretch_both",
 )
 
-btn_volver = pn.widgets.Button(name="🔙 Tornar", button_type="light", height=40)
+btn_volver = pn.widgets.Button(name="🔙 Tornar", button_type="danger", height=40)
 contenedor_familias = pn.Column(
     "## 1. Família", btn_volver, pn.layout.Divider(), visible=False
 )
@@ -316,33 +329,31 @@ grup_comptadors_vertical = pn.Column(
 )
 
 # --- SUPER CONTENIDOR PRINCIPAL RESPONSIVE ---
-# (Se unifica la definición para que el botón esté presente)
 col_imatge_esquerra = pn.Column(
     imagen_visor,
     btn_fullscreen,
     row_like_dislike,
     mensaje,
     btn_limpiar_descartes,
-    row_confirmacion_descartes,  # <-- AÑADIR ESTA LÍNEA AQUÍ
+    row_confirmacion_descartes,
     sizing_mode="stretch_width",
-    min_width=700,
-    margin=(0, 10),
+    min_width=350,  # <-- Reducido para que quepa en pantallas pequeñas
+    margin=(0, 15),
 )
 
 app_container = pn.Row(
     col_imatge_esquerra,
-    pn.Column(contenedor_familias, sizing_mode="stretch_width", min_width=200),
+    # Fijamos el ancho de las columnas de menús para proteger los botones
+    pn.Column(contenedor_familias, width=260),
     pn.Column(
         contenedor_especies,
         contenedor_manual,
-        sizing_mode="stretch_width",
-        min_width=200,
+        width=260,
     ),
     pn.Column(
         pn.layout.VSpacer(),
         grup_comptadors_vertical,
-        sizing_mode="stretch_width",
-        min_width=150,
+        width=150,
         align="center",
     ),
     visible=False,
@@ -389,7 +400,7 @@ def cargar_nueva_imagen():
 def seleccionar_familia(event):
     familia = event.obj.name
 
-    if familia == "✏️ ALTRE (ESCRIURE MANUAL) ✏️":
+    if familia == "✏️ ALTRE (ESCRIURE) ✏️":
         contenedor_especies.visible = False
         contenedor_manual.visible = True
         return
@@ -400,7 +411,7 @@ def seleccionar_familia(event):
     contenedor_especies.clear()
 
     # --- NUEVA LÓGICA: Categoría de especies de la carpeta ---
-    if familia == "📂 Altres (Ja creades a la carpeta) 📂":
+    if familia == "📂 Altres (Ja creades) 📂":
         contenedor_especies.append(f"### {familia}")
 
         # 1. Recopilar todos los nombres que ya están en el JSON para ignorarlos
@@ -430,7 +441,7 @@ def seleccionar_familia(event):
 
         # Añadimos también el botón manual por si acaso
         btn_manual = pn.widgets.Button(
-            name="✏️ ALTRE (ESCRIURE MANUAL) ✏️", button_type="light", height=45
+            name="✏️ ALTRE (ESCRIURE) ✏️", button_type="light", height=45
         )
         btn_manual.on_click(seleccionar_especie)
         contenedor_especies.append(pn.layout.Divider())
@@ -439,7 +450,7 @@ def seleccionar_familia(event):
 
     # --- LÓGICA ORIGINAL PARA FAMILIAS NORMALES ---
     contenedor_especies.append(f"### Espècies de {familia}")
-    especies = list(PECES_DB[familia].keys()) + ["✏️ ALTRE (ESCRIURE MANUAL) ✏️"]
+    especies = list(PECES_DB[familia].keys()) + ["✏️ ALTRE (ESCRIURE) ✏️"]
     for especie in especies:
         btn = pn.widgets.Button(name=especie, button_type="light", height=45)
         btn.on_click(seleccionar_especie)
@@ -513,10 +524,10 @@ def ejecutar_duplicado_y_renombrado(nombre_cientifico):
 
 
 def seleccionar_especie(event):
-    if event.obj.name == "✏️ ALTRE (ESCRIURE MANUAL) ✏️":
+    if event.obj.name == "✏️ ALTRE (ESCRIURE) ✏️":
         contenedor_especies.visible = False
         contenedor_manual.visible = True
-    elif state.familia_seleccionada == "📂 Altres (Ja creades a la carpeta) 📂":
+    elif state.familia_seleccionada == "📂 Altres (Ja creades) 📂":
         # --- NUEVO: Si viene de la carpeta extra, el nombre del botón ya es el nombre científico ---
         ejecutar_duplicado_y_renombrado(event.obj.name)
     else:
@@ -596,18 +607,26 @@ btn_cerrar_lightbox.on_click(cerrar_lightbox)
 
 # --- GENERAR BOTONS DE FAMÍLIES ---
 for fam in PECES_DB.keys():
-    btn_fam = pn.widgets.Button(name=fam, button_type="primary", height=50)
+    btn_fam = pn.widgets.Button(
+        name=fam, button_type="primary", height=50, sizing_mode="stretch_width"
+    )
     btn_fam.on_click(seleccionar_familia)
     contenedor_familias.append(btn_fam)
 
 btn_fam_carpetas = pn.widgets.Button(
-    name="📂 Altres (Ja creades a la carpeta) 📂", button_type="primary", height=50
+    name="📂 Altres (Ja creades) 📂",
+    button_type="primary",
+    height=50,
+    sizing_mode="stretch_width",
 )
 btn_fam_carpetas.on_click(seleccionar_familia)
 contenedor_familias.append(btn_fam_carpetas)
 
 btn_fam_otro = pn.widgets.Button(
-    name="✏️ ALTRE (ESCRIURE MANUAL) ✏️", button_type="warning", height=50
+    name="✏️ ALTRE (ESCRIURE) ✏️",
+    button_type="warning",
+    height=50,
+    sizing_mode="stretch_width",
 )
 btn_fam_otro.on_click(seleccionar_familia)
 contenedor_familias.append(pn.layout.Divider())
